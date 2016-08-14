@@ -12,7 +12,6 @@ type
     procedure FormDockOver(Sender: TObject; Source: TDragDockObject;
       X, Y: Integer; State: TDragState; var Accept: Boolean);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure FormShow(Sender: TObject);
     procedure FormStartDock(Sender: TObject; var DragObject: TDragDockObject);
   private
     FUndockedLeft: Integer;
@@ -33,7 +32,8 @@ implementation
 
 uses
   VCL.ComCtrls,
-  DockDemo.Utilities, DockDemo.TabHost, DockDemo.ConjoinHost, DockDemo.Main;
+  DockDemo.Utilities, DockDemo.Host, // DockDemo.TabHost, DockDemo.ConjoinHost,
+  DockDemo.Main;
 
 { TFormDockable }
 
@@ -126,26 +126,19 @@ end;
 procedure TFormDockable.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
-  // the action taken depends on how the form is docked.
-
-  if (HostDockSite is TFormDockHostConjoin) then
-  begin
-    // remove the form's caption from the conjoin dock host's caption list
-    TFormDockHostConjoin(HostDockSite).UpdateCaption(Self);
-
-    // if we're the last visible form on a conjoined form, hide the form
-    if HostDockSite.VisibleDockClientCount <= 1 then
-      HostDockSite.Hide;
-  end;
-
-  // if docked to a panel, tell the panel to hide itself. If there are other
-  // visible dock clients on the panel, it ShowDockPanel won't allow it to
-  // be hidden
-  if (HostDockSite is TPanel) then
-    MainForm.ShowDockPanel(HostDockSite as TPanel, False, nil);
+  if HostDockSite is TPanel then
+    if (HostDockSite.Owner is TFormDockHost) then
+    begin
+      // if we're the last visible form on a conjoined form, hide the form
+      if HostDockSite.VisibleDockClientCount <= 1 then
+        TFormDockHost(HostDockSite.Owner).Hide;
+    end
+    else
+      MainForm.ShowDockPanel(HostDockSite as TPanel, False, nil);
 
   Action := caHide;
 
+(*
   if not Floating and FloatOnCloseDock then
   begin
     // Float when close docked window
@@ -153,21 +146,16 @@ begin
     ManualFloat(Rect(FUndockedLeft, FUndockedTop, FUndockedLeft + UndockWidth,
       FUndockedTop + UndockHeight));
   end;
+*)
 end;
 
 procedure TFormDockable.CMDockClient(var Message: TCMDockClient);
 var
   ARect: TRect;
   DockType: TAlign;
-  Host: TForm;
+  Host: TFormDockHost;
   Pt: TPoint;
 begin
-  // Overriding this message allows the dock form to create host forms
-  // depending on the mouse position when docking occurs. If we don't override
-  // this message, the form will use VCL's default DockManager.
-
-  // NOTE: the only time ManualDock can be safely called during a drag
-  // operation is we override processing of CM_DOCKCLIENT.
   if Message.DockSource.Control is TFormDockable then
   begin
     // Find out how to dock (Using a TAlign as the result of ComputeDockingRect)
@@ -175,51 +163,16 @@ begin
     Pt.Y := Message.MousePos.Y;
     DockType := ComputeDockingRect(ARect, Pt);
 
-    // if we are over a dockable form docked to a panel in the
-    // main window, manually dock the dragged form to the panel with
-    // the correct orientation.
-    if (HostDockSite is TPanel) then
-    begin
-      Message.DockSource.Control.ManualDock(HostDockSite, nil, DockType);
-      Exit;
-    end;
-
-    // alClient => Create a TabDockHost and manually dock both forms to the PageControl
-    // owned by the TabDockHost.
-    if DockType = alClient then
-    begin
-      if (Message.DockSource.Control is TFormDockable) and
-             (HostDockSite is TPageControl) then
-        Host := TFormDockHostTabs(HostDockSite.Parent)
-      else
-      begin
-        Host := TFormDockHostTabs.Create(Application);
-        Host.BoundsRect := Self.BoundsRect;
-      end;
-      Self.ManualDock(TFormDockHostTabs(Host).PageControl, nil, alClient);
-      Message.DockSource.Control.ManualDock(TFormDockHostTabs(Host).PageControl, nil, alClient);
-      Host.Visible := True;
-    end
-    // if DockType <> alClient, create the ConjoinDockHost and manually dock both
-    // forms to it. Be sure to make dockable forms non-dockable when hosted by
-    // ConjoinDockForm, since it is using the VCL default DockManager.
-    else
-    begin
-      Host := TFormDockHostConjoin.Create(Application);
-      Host.BoundsRect := Self.BoundsRect;
-      Self.ManualDock(Host, nil, alNone);
-      Self.DockSite := False;
-      Message.DockSource.Control.ManualDock(Host, nil, DockType);
-      TFormDockable(Message.DockSource.Control).DockSite := False;
-      Host.Visible := True;
-    end;
+    Host := TFormDockHost.Create(Application);
+    Host.IsPaged := DockType = alClient;
+    Host.BoundsRect := Self.BoundsRect;
+    Self.ManualDock(Host.PanelDock, nil, alNone);
+    Self.DockSite := False;
+    Message.DockSource.Control.ManualDock(Host.PanelDock, nil, DockType);
+    TFormDockable(Message.DockSource.Control).DockSite := False;
+    Host.IsPaged := DockType = alClient;
+    Host.Visible := True;
   end;
-end;
-
-procedure TFormDockable.FormShow(Sender: TObject);
-begin
-  if HostDockSite is TFormDockHostConjoin then
-    TFormDockHostConjoin(HostDockSite).UpdateCaption(nil);
 end;
 
 procedure TFormDockable.FormStartDock(Sender: TObject;

@@ -116,22 +116,22 @@ object MainForm: TMainForm
       end
       object MenuItemLime: TMenuItem
         Tag = 3
-        Caption = '&Lime'
+        Caption = '&Red'
         OnClick = MenuItemViewFormClick
       end
       object MenuItemPurple: TMenuItem
         Tag = 4
-        Caption = '&Purple'
+        Caption = '&Teal'
         OnClick = MenuItemViewFormClick
       end
       object MenuItemRed: TMenuItem
         Tag = 5
-        Caption = '&Red'
+        Caption = '&Purple'
         OnClick = MenuItemViewFormClick
       end
       object MenuItemTeal: TMenuItem
         Tag = 6
-        Caption = '&Teal'
+        Caption = '&Lime'
         OnClick = MenuItemViewFormClick
       end
     end

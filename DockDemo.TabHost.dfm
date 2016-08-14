@@ -1,7 +1,7 @@
 inherited FormDockHostTabs: TFormDockHostTabs
   Left = 412
   Top = 306
-  Caption = 'FormDockHostTabs'
+  Caption = 'Dock Host (Tabs)'
   ClientHeight = 275
   ClientWidth = 492
   PixelsPerInch = 96

@@ -2,7 +2,7 @@ object FormDockHostConjoin: TFormDockHostConjoin
   Left = 373
   Top = 291
   BorderStyle = bsSizeToolWin
-  Caption = 'ConjoinDockHost'
+  Caption = 'Dock Host (Conjoin)'
   ClientHeight = 303
   ClientWidth = 590
   Color = clBtnFace

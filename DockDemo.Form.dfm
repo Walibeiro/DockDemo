@@ -2,10 +2,10 @@ object FormDockable: TFormDockable
   Left = 117
   Top = 294
   Anchors = [akLeft]
-  BorderStyle = bsToolWindow
-  Caption = 'DockableForm'
-  ClientHeight = 217
-  ClientWidth = 391
+  BorderStyle = bsSizeToolWin
+  Caption = 'Dockable Form'
+  ClientHeight = 215
+  ClientWidth = 389
   Color = clBtnFace
   DockSite = True
   DragKind = dkDock
@@ -18,7 +18,6 @@ object FormDockable: TFormDockable
   OldCreateOrder = False
   OnClose = FormClose
   OnDockOver = FormDockOver
-  OnShow = FormShow
   OnStartDock = FormStartDock
   PixelsPerInch = 96
   TextHeight = 13

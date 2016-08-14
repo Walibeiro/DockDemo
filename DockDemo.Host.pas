@@ -5,23 +5,29 @@ interface
 uses
   System.SysUtils, System.Classes, System.Types, WinApi.Windows,
   WinApi.Messages, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
-  DockDemo.Form;
+  DockDemo.Form, Vcl.Tabs, Vcl.ExtCtrls;
 
 type
-  TFormDockHost = class(TForm)
+  TFormDockHost = class(TFormDockable)
+    PanelDock: TPanel;
+    TabSet: TTabSet;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure FormDockDrop(Sender: TObject; Source: TDragDockObject;
+    procedure PanelDockDrop(Sender: TObject; Source: TDragDockObject;
       X, Y: Integer);
-    procedure FormUnDock(Sender: TObject; Client: TControl;
+    procedure PanelUnDock(Sender: TObject; Client: TControl;
       NewTarget: TWinControl; var Allow: Boolean);
-    procedure FormDockOver(Sender: TObject; Source: TDragDockObject;
+    procedure PanelDockOver(Sender: TObject; Source: TDragDockObject;
       X, Y: Integer; State: TDragState; var Accept: Boolean);
     procedure FormGetSiteInfo(Sender: TObject; DockClient: TControl;
       var InfluenceRect: TRect; MousePos: TPoint; var CanDock: Boolean);
+    procedure TabSetChange(Sender: TObject; NewTab: Integer;
+      var AllowChange: Boolean);
   private
     procedure DoFloat(AControl: TControl);
+    procedure SetIsPaged(const Value: Boolean);
+    function GetIsPaged: Boolean;
   public
-    procedure UpdateCaption(Exclude: TControl);
+    property IsPaged: Boolean read GetIsPaged write SetIsPaged;
   end;
 
 implementation
@@ -32,9 +38,9 @@ implementation
 
 procedure TFormDockHost.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  if DockClientCount = 1 then
+  if PanelDock.DockClientCount = 1 then
   begin
-    DoFloat(DockClients[0]);
+    DoFloat(PanelDock.DockClients[0]);
     Action := caFree;
   end
   else
@@ -52,38 +58,29 @@ begin
   AControl.ManualFloat(ARect);
 end;
 
-procedure TFormDockHost.UpdateCaption(Exclude: TControl);
+procedure TFormDockHost.PanelDockDrop(Sender: TObject;
+  Source: TDragDockObject; X, Y: Integer);
 var
   Index: Integer;
+  R: TRect;
 begin
-  // if a dockable form is undocking, it will pass itself in as Exclude
-  // because even it hasn't actually been taken out of the DockClient array
-  // at this point.
-  Caption := '';
-  for Index := 0 to DockClientCount - 1 do
-    if DockClients[Index].Visible and (DockClients[Index] <> Exclude) then
-      Caption := Caption + TCustomForm(DockClients[Index]).Caption + ' ';
-end;
+  TabSet.Tabs.Clear;
+  for Index := 0 to PanelDock.DockClientCount - 1 do
+    TabSet.Tabs.Add(TFormDockable(PanelDock.DockClients[Index]).Caption);
 
-procedure TFormDockHost.FormDockDrop(Sender: TObject;
-  Source: TDragDockObject; X, Y: Integer);
-begin
-  UpdateCaption(nil);
+  if IsPaged then
+    TabSet.TabIndex := TabSet.Tabs.Count - 1;
 
   // Force DockManager to redraw it's clients.
-  DockManager.ResetBounds(True);
+  if PanelDock.UseDockManager then
+    PanelDock.DockManager.ResetBounds(True)
+  else
+  begin
+    Source.Control.Align := alClient;
+  end;
 end;
 
-{
-  The following example is taken from the docking demo. It shows how the
-  OnUnDock event handler of the conjoinment docking site re-enables docking in
-  the control that is undocked (if it is a dockable form). In addition, when
-  the next-to-last docked control is undocked, the conjoinment docking site
-  sends itself a close message so that the last docked control is undocked to
-  its old position and size.
-}
-
-procedure TFormDockHost.FormUnDock(Sender: TObject; Client: TControl;
+procedure TFormDockHost.PanelUnDock(Sender: TObject; Client: TControl;
   NewTarget: TWinControl; var Allow: Boolean);
 begin
   // only 2 dock clients means the host must be destroyed and
@@ -91,13 +88,32 @@ begin
   // (Recall that OnUnDock gets called before the undocking actually occurs)
   if Client is TFormDockable then
     TFormDockable(Client).DockSite := True;
-  if (DockClientCount = 2) and (NewTarget <> Self) then
-    PostMessage(Self.Handle, WM_CLOSE, 0, 0);
 
-  UpdateCaption(Client);
+  if (PanelDock.DockClientCount = 2) and (NewTarget <> Self) then
+    PostMessage(Self.Handle, WM_CLOSE, 0, 0);
 end;
 
-procedure TFormDockHost.FormDockOver(Sender: TObject;
+procedure TFormDockHost.SetIsPaged(const Value: Boolean);
+begin
+  TabSet.Visible := Value;
+  PanelDock.UseDockManager := not Value;
+end;
+
+procedure TFormDockHost.TabSetChange(Sender: TObject; NewTab: Integer;
+  var AllowChange: Boolean);
+var
+  Index: Integer;
+begin
+  for Index := 0 to PanelDock.DockClientCount - 1 do
+    PanelDock.DockClients[Index].Visible := Index = NewTab;
+end;
+
+function TFormDockHost.GetIsPaged: Boolean;
+begin
+  Result := TabSet.Visible;
+end;
+
+procedure TFormDockHost.PanelDockOver(Sender: TObject;
   Source: TDragDockObject; X, Y: Integer; State: TDragState;
   var Accept: Boolean);
 begin

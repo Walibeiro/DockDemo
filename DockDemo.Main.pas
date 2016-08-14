@@ -56,7 +56,7 @@ var
 implementation
 
 uses
-  Vcl.Graphics, DockDemo.TabHost, DockDemo.ConjoinHost;
+  Vcl.Graphics, DockDemo.Host, DockDemo.TabHost, DockDemo.ConjoinHost;
 
 {$R *.dfm}
 
@@ -113,30 +113,9 @@ var
 begin
   DockWindow := DockWindows[(Sender as TComponent).Tag];
 
-  // if the docked window is TabDocked, it is docked to the PageControl
-  // (owned by TTabDockHost) so show the host form.
-  if DockWindow.HostDockSite is TPageControl then
+  if (DockWindow.HostDockSite is TPanel) and (DockWindow.HostDockSite.Owner is TFormDockHost) then
     TFormDockHostTabs(DockWindow.HostDockSite.Owner).Show
   else
-
-  // If window is conjoin-docked, host and/or form may not be visible so show
-  // both.
-  if (DockWindow.HostDockSite is TFormDockHostConjoin) and not
-    DockWindow.HostDockSite.Visible then
-  begin
-    DockWindow.HostDockSite.Show;
-    TFormDockHostConjoin(DockWindow.HostDockSite).UpdateCaption(nil);
-    DockWindow.Show;
-  end
-  else
-
-  // If form is docked to one of the "hidden" docking panels, resize the
-  // panel and re-show the docked form.
-  if (DockWindow.HostDockSite is TPanel) and
-    ((DockWindow.HostDockSite.Height = 0) or (DockWindow.HostDockSite.Width = 0)) then
-    MainForm.ShowDockPanel(DockWindow.HostDockSite as TPanel, True, DockWindow)
-  else
-    // if the window isn't docked at all, simply show it.
     DockWindow.Show;
 end;
 
