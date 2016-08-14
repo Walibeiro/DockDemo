@@ -8,7 +8,7 @@ uses
   Vcl.StdCtrls, Vcl.ExtCtrls;
 
 type
-  TDockableForm = class(TForm)
+  TFormDockable = class(TForm)
     procedure FormDockOver(Sender: TObject; Source: TDragDockObject;
       X, Y: Integer; State: TDragState; var Accept: Boolean);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -33,16 +33,16 @@ implementation
 
 uses
   VCL.ComCtrls,
-  DockDemo.Utilities, DockDemo.TabHost, DockDemo.Host, DockDemo.Main;
+  DockDemo.Utilities, DockDemo.TabHost, DockDemo.ConjoinHost, DockDemo.Main;
 
-{ TDockableForm }
+{ TFormDockable }
 
-procedure TDockableForm.FormDockOver(Sender: TObject; Source: TDragDockObject;
+procedure TFormDockable.FormDockOver(Sender: TObject; Source: TDragDockObject;
   X, Y: Integer; State: TDragState; var Accept: Boolean);
 var
   ARect: TRect;
 begin
-  Accept := (Source.Control is TDockableForm);
+  Accept := (Source.Control is TFormDockable);
 
   // Draw dock preview depending on where the cursor is relative to our client area
   if Accept and (ComputeDockingRect(ARect, Point(X, Y)) <> alNone) then
@@ -52,7 +52,7 @@ begin
   end;
 end;
 
-function TDockableForm.ComputeDockingRect(var DockRect: TRect; MousePos: TPoint): TAlign;
+function TFormDockable.ComputeDockingRect(var DockRect: TRect; MousePos: TPoint): TAlign;
 var
   DockTopRect,
   DockLeftRect,
@@ -123,15 +123,15 @@ begin
   DockRect.BottomRight := ClientToScreen(DockRect.BottomRight);
 end;
 
-procedure TDockableForm.FormClose(Sender: TObject;
+procedure TFormDockable.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
   // the action taken depends on how the form is docked.
 
-  if (HostDockSite is TConjoinDockHost) then
+  if (HostDockSite is TFormDockHostConjoin) then
   begin
     // remove the form's caption from the conjoin dock host's caption list
-    TConjoinDockHost(HostDockSite).UpdateCaption(Self);
+    TFormDockHostConjoin(HostDockSite).UpdateCaption(Self);
 
     // if we're the last visible form on a conjoined form, hide the form
     if HostDockSite.VisibleDockClientCount <= 1 then
@@ -155,7 +155,7 @@ begin
   end;
 end;
 
-procedure TDockableForm.CMDockClient(var Message: TCMDockClient);
+procedure TFormDockable.CMDockClient(var Message: TCMDockClient);
 var
   ARect: TRect;
   DockType: TAlign;
@@ -168,7 +168,7 @@ begin
 
   // NOTE: the only time ManualDock can be safely called during a drag
   // operation is we override processing of CM_DOCKCLIENT.
-  if Message.DockSource.Control is TDockableForm then
+  if Message.DockSource.Control is TFormDockable then
   begin
     // Find out how to dock (Using a TAlign as the result of ComputeDockingRect)
     Pt.X := Message.MousePos.X;
@@ -188,16 +188,16 @@ begin
     // owned by the TabDockHost.
     if DockType = alClient then
     begin
-      if (Message.DockSource.Control is TDockableForm) and
+      if (Message.DockSource.Control is TFormDockable) and
              (HostDockSite is TPageControl) then
-        Host := TTabDockHost(HostDockSite.Parent)
+        Host := TFormDockHostTabs(HostDockSite.Parent)
       else
       begin
-        Host := TTabDockHost.Create(Application);
+        Host := TFormDockHostTabs.Create(Application);
         Host.BoundsRect := Self.BoundsRect;
       end;
-      Self.ManualDock(TTabDockHost(Host).PageControl, nil, alClient);
-      Message.DockSource.Control.ManualDock(TTabDockHost(Host).PageControl, nil, alClient);
+      Self.ManualDock(TFormDockHostTabs(Host).PageControl, nil, alClient);
+      Message.DockSource.Control.ManualDock(TFormDockHostTabs(Host).PageControl, nil, alClient);
       Host.Visible := True;
     end
     // if DockType <> alClient, create the ConjoinDockHost and manually dock both
@@ -205,31 +205,31 @@ begin
     // ConjoinDockForm, since it is using the VCL default DockManager.
     else
     begin
-      Host := TConjoinDockHost.Create(Application);
+      Host := TFormDockHostConjoin.Create(Application);
       Host.BoundsRect := Self.BoundsRect;
       Self.ManualDock(Host, nil, alNone);
       Self.DockSite := False;
       Message.DockSource.Control.ManualDock(Host, nil, DockType);
-      TDockableForm(Message.DockSource.Control).DockSite := False;
+      TFormDockable(Message.DockSource.Control).DockSite := False;
       Host.Visible := True;
     end;
   end;
 end;
 
-procedure TDockableForm.FormShow(Sender: TObject);
+procedure TFormDockable.FormShow(Sender: TObject);
 begin
-  if HostDockSite is TConjoinDockHost then
-    TConjoinDockHost(HostDockSite).UpdateCaption(nil);
+  if HostDockSite is TFormDockHostConjoin then
+    TFormDockHostConjoin(HostDockSite).UpdateCaption(nil);
 end;
 
-procedure TDockableForm.FormStartDock(Sender: TObject;
+procedure TFormDockable.FormStartDock(Sender: TObject;
   var DragObject: TDragDockObject);
 begin
   // create a customized DragDropObject
   DragObject := TTransparentDragDockObject.Create(Self);
 end;
 
-procedure TDockableForm.WMNCLButtonDown(var Msg: TMessage);
+procedure TFormDockable.WMNCLButtonDown(var Msg: TMessage);
 begin
   inherited;
 

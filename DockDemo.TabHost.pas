@@ -8,7 +8,7 @@ uses
   Vcl.ComCtrls, DockDemo.Form, Vcl.StdCtrls;
 
 type
-  TTabDockHost = class(TDockableForm)
+  TFormDockHostTabs = class(TFormDockable)
     PageControl: TPageControl;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure PageControlUnDock(Sender: TObject; Client: TControl;
@@ -25,7 +25,7 @@ implementation
 
 { TTabDockHost }
 
-procedure TTabDockHost.FormClose(Sender: TObject; var Action: TCloseAction);
+procedure TFormDockHostTabs.FormClose(Sender: TObject; var Action: TCloseAction);
 var
   ARect: TRect;
 begin
@@ -43,7 +43,7 @@ begin
     Action := caHide;
 end;
 
-procedure TTabDockHost.PageControlUnDock(Sender: TObject;
+procedure TFormDockHostTabs.PageControlUnDock(Sender: TObject;
   Client: TControl; NewTarget: TWinControl; var Allow: Boolean);
 begin
   // only 2 dock clients means the host must be destroyed and
@@ -52,18 +52,18 @@ begin
     PostMessage(Self.Handle, WM_CLOSE, 0, 0);
 end;
 
-procedure TTabDockHost.PageControlGetSiteInfo(Sender: TObject;
+procedure TFormDockHostTabs.PageControlGetSiteInfo(Sender: TObject;
   DockClient: TControl; var InfluenceRect: TRect; MousePos: TPoint;
   var CanDock: Boolean);
 begin
-  CanDock := DockClient is TDockableForm;
+  CanDock := DockClient is TFormDockable;
 end;
 
-procedure TTabDockHost.PageControlDockOver(Sender: TObject;
+procedure TFormDockHostTabs.PageControlDockOver(Sender: TObject;
   Source: TDragDockObject; X, Y: Integer; State: TDragState;
   var Accept: Boolean);
 begin
-  Accept := Source.Control is TDockableForm;
+  Accept := Source.Control is TFormDockable;
 end;
 
 end.

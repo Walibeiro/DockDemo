@@ -1,15 +1,14 @@
-unit DockDemo.Host;
+unit DockDemo.ConjoinHost;
 
 interface
 
 uses
   System.SysUtils, System.Classes, System.Types, WinApi.Windows,
   WinApi.Messages, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
-  DockDemo.Form, Vcl.Tabs;
+  DockDemo.Form;
 
 type
-  TFormDockHost = class(TFormDockable)
-    TabSet1: TTabSet;
+  TFormDockHostConjoin = class(TFormDockable)
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDockDrop(Sender: TObject; Source: TDragDockObject;
       X, Y: Integer);
@@ -29,20 +28,9 @@ implementation
 
 {$R *.dfm}
 
-{ TFormDockHost }
+{ TFormDockHostConjoin }
 
-procedure TFormDockHost.DoFloat(AControl: TControl);
-var
-  ARect: TRect;
-begin
-  // float the control with its original size.
-  ARect.TopLeft := AControl.ClientToScreen(Point(0, 0));
-  ARect.BottomRight := AControl.ClientToScreen(Point(AControl.UndockWidth,
-    AControl.UndockHeight));
-  AControl.ManualFloat(ARect);
-end;
-
-procedure TFormDockHost.FormClose(Sender: TObject; var Action: TCloseAction);
+procedure TFormDockHostConjoin.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   if DockClientCount = 1 then
   begin
@@ -53,7 +41,18 @@ begin
     Action := caHide;
 end;
 
-procedure TFormDockHost.UpdateCaption(Exclude: TControl);
+procedure TFormDockHostConjoin.DoFloat(AControl: TControl);
+var
+  ARect: TRect;
+begin
+  // float the control with its original size.
+  ARect.TopLeft := AControl.ClientToScreen(Point(0, 0));
+  ARect.BottomRight := AControl.ClientToScreen(Point(AControl.UndockWidth,
+    AControl.UndockHeight));
+  AControl.ManualFloat(ARect);
+end;
+
+procedure TFormDockHostConjoin.UpdateCaption(Exclude: TControl);
 var
   Index: Integer;
 begin
@@ -66,7 +65,7 @@ begin
       Caption := Caption + TCustomForm(DockClients[Index]).Caption + ' ';
 end;
 
-procedure TFormDockHost.FormDockDrop(Sender: TObject;
+procedure TFormDockHostConjoin.FormDockDrop(Sender: TObject;
   Source: TDragDockObject; X, Y: Integer);
 begin
   UpdateCaption(nil);
@@ -76,34 +75,37 @@ begin
 end;
 
 {
-The following example is taken from the docking demo. It shows how the OnUnDock
-event handler of the conjoinment docking site re-enables docking in the control
-that is undocked (if it is a dockable form). In addition, when the next-to-last
-docked control is undocked, the conjoinment docking site sends itself a close
-message so that the last docked control is undocked to its old position and size.
+  The following example is taken from the docking demo. It shows how the
+  OnUnDock event handler of the conjoinment docking site re-enables docking in
+  the control that is undocked (if it is a dockable form). In addition, when
+  the next-to-last docked control is undocked, the conjoinment docking site
+  sends itself a close message so that the last docked control is undocked to
+  its old position and size.
 }
 
-procedure TFormDockHost.FormUnDock(Sender: TObject; Client: TControl; NewTarget: TWinControl; var Allow: Boolean);
+procedure TFormDockHostConjoin.FormUnDock(Sender: TObject; Client: TControl;
+  NewTarget: TWinControl; var Allow: Boolean);
 begin
   // only 2 dock clients means the host must be destroyed and
   // the remaining window undocked to its old position and size.
   // (Recall that OnUnDock gets called before the undocking actually occurs)
   if Client is TFormDockable then
     TFormDockable(Client).DockSite := True;
+
   if (DockClientCount = 2) and (NewTarget <> Self) then
     PostMessage(Self.Handle, WM_CLOSE, 0, 0);
 
   UpdateCaption(Client);
 end;
 
-procedure TFormDockHost.FormDockOver(Sender: TObject;
+procedure TFormDockHostConjoin.FormDockOver(Sender: TObject;
   Source: TDragDockObject; X, Y: Integer; State: TDragState;
   var Accept: Boolean);
 begin
   Accept := Source.Control is TFormDockable;
 end;
 
-procedure TFormDockHost.FormGetSiteInfo(Sender: TObject;
+procedure TFormDockHostConjoin.FormGetSiteInfo(Sender: TObject;
   DockClient: TControl; var InfluenceRect: TRect; MousePos: TPoint;
   var CanDock: Boolean);
 begin

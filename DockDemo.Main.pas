@@ -56,12 +56,12 @@ var
 implementation
 
 uses
-  Vcl.Graphics, DockDemo.TabHost, DockDemo.Host;
+  Vcl.Graphics, DockDemo.TabHost, DockDemo.ConjoinHost;
 
 {$R *.dfm}
 
 var
-  DockWindows: array [0..6] of TDockableForm;
+  DockWindows: array [0..6] of TFormDockable;
 
 { TMainForm }
 
@@ -77,7 +77,7 @@ procedure TMainForm.FormDockOver(Sender: TObject; Source: TDragDockObject; X,
 var
   ARect: TRect;
 begin
-  Accept := (Source.Control is TDockableForm);
+  Accept := (Source.Control is TFormDockable);
 
   // Draw dock preview depending on where the cursor is relative to our client area
   if Accept and (ComputeDockingRect(ARect, Point(X, Y)) <> alNone) then
@@ -109,23 +109,23 @@ end;
 
 procedure TMainForm.MenuItemViewFormClick(Sender: TObject);
 var
-  DockWindow: TDockableForm;
+  DockWindow: TFormDockable;
 begin
   DockWindow := DockWindows[(Sender as TComponent).Tag];
 
   // if the docked window is TabDocked, it is docked to the PageControl
   // (owned by TTabDockHost) so show the host form.
   if DockWindow.HostDockSite is TPageControl then
-    TTabDockHost(DockWindow.HostDockSite.Owner).Show
+    TFormDockHostTabs(DockWindow.HostDockSite.Owner).Show
   else
 
   // If window is conjoin-docked, host and/or form may not be visible so show
   // both.
-  if (DockWindow.HostDockSite is TConjoinDockHost) and not
+  if (DockWindow.HostDockSite is TFormDockHostConjoin) and not
     DockWindow.HostDockSite.Visible then
   begin
     DockWindow.HostDockSite.Show;
-    TConjoinDockHost(DockWindow.HostDockSite).UpdateCaption(nil);
+    TFormDockHostConjoin(DockWindow.HostDockSite).UpdateCaption(nil);
     DockWindow.Show;
   end
   else
@@ -154,7 +154,7 @@ procedure TMainForm.FormGetSiteInfo(Sender: TObject;
   var CanDock: Boolean);
 begin
   // if CanDock is true, the panel will not automatically draw the preview rect.
-  CanDock := (DockClient is TDockableForm);
+  CanDock := (DockClient is TFormDockable);
 end;
 
 procedure TMainForm.CMDockClient(var Message: TCMDockClient);
@@ -163,7 +163,7 @@ var
   DockType: TAlign;
   Pt: TPoint;
 begin
-  if Message.DockSource.Control is TDockableForm then
+  if Message.DockSource.Control is TFormDockable then
   begin
     Pt.X := Message.MousePos.X;
     Pt.Y := Message.MousePos.Y;
@@ -247,7 +247,7 @@ const
 begin
   for Index := 0 to High(DockWindows) do
   begin
-    DockWindows[Index] := TDockableForm.Create(Application);
+    DockWindows[Index] := TFormDockable.Create(Application);
     ColorText := ColorToString(CColors[Index]);
     Delete(ColorText, 1, 2);
     DockWindows[Index].Caption := ColorText;

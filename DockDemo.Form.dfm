@@ -1,4 +1,4 @@
-object DockableForm: TDockableForm
+inherited FormDockable: TFormDockable
   Left = 117
   Top = 294
   Anchors = [akLeft]
