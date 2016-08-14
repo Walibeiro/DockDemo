@@ -8,7 +8,7 @@ uses
   DockDemo.Form;
 
 type
-  TFormDockHostConjoin = class(TFormDockable)
+  TFormDockHostConjoin = class(TForm)
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDockDrop(Sender: TObject; Source: TDragDockObject;
       X, Y: Integer);
@@ -91,7 +91,6 @@ begin
   // (Recall that OnUnDock gets called before the undocking actually occurs)
   if Client is TFormDockable then
     TFormDockable(Client).DockSite := True;
-
   if (DockClientCount = 2) and (NewTarget <> Self) then
     PostMessage(Self.Handle, WM_CLOSE, 0, 0);
 
@@ -109,8 +108,7 @@ procedure TFormDockHostConjoin.FormGetSiteInfo(Sender: TObject;
   DockClient: TControl; var InfluenceRect: TRect; MousePos: TPoint;
   var CanDock: Boolean);
 begin
-  CanDock:= DockClient is TFormDockable;
+  CanDock := DockClient is TFormDockable;
 end;
 
 end.
-

@@ -5,11 +5,10 @@ interface
 uses
   System.SysUtils, System.Classes, System.Types, WinApi.Windows,
   WinApi.Messages, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
-  DockDemo.Form, Vcl.Tabs;
+  DockDemo.Form;
 
 type
-  TFormDockHost = class(TFormDockable)
-    TabSet1: TTabSet;
+  TFormDockHost = class(TForm)
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDockDrop(Sender: TObject; Source: TDragDockObject;
       X, Y: Integer);
@@ -31,17 +30,6 @@ implementation
 
 { TFormDockHost }
 
-procedure TFormDockHost.DoFloat(AControl: TControl);
-var
-  ARect: TRect;
-begin
-  // float the control with its original size.
-  ARect.TopLeft := AControl.ClientToScreen(Point(0, 0));
-  ARect.BottomRight := AControl.ClientToScreen(Point(AControl.UndockWidth,
-    AControl.UndockHeight));
-  AControl.ManualFloat(ARect);
-end;
-
 procedure TFormDockHost.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   if DockClientCount = 1 then
@@ -51,6 +39,17 @@ begin
   end
   else
     Action := caHide;
+end;
+
+procedure TFormDockHost.DoFloat(AControl: TControl);
+var
+  ARect: TRect;
+begin
+  // float the control with its original size.
+  ARect.TopLeft := AControl.ClientToScreen(Point(0, 0));
+  ARect.BottomRight := AControl.ClientToScreen(Point(AControl.UndockWidth,
+    AControl.UndockHeight));
+  AControl.ManualFloat(ARect);
 end;
 
 procedure TFormDockHost.UpdateCaption(Exclude: TControl);
@@ -76,14 +75,16 @@ begin
 end;
 
 {
-The following example is taken from the docking demo. It shows how the OnUnDock
-event handler of the conjoinment docking site re-enables docking in the control
-that is undocked (if it is a dockable form). In addition, when the next-to-last
-docked control is undocked, the conjoinment docking site sends itself a close
-message so that the last docked control is undocked to its old position and size.
+  The following example is taken from the docking demo. It shows how the
+  OnUnDock event handler of the conjoinment docking site re-enables docking in
+  the control that is undocked (if it is a dockable form). In addition, when
+  the next-to-last docked control is undocked, the conjoinment docking site
+  sends itself a close message so that the last docked control is undocked to
+  its old position and size.
 }
 
-procedure TFormDockHost.FormUnDock(Sender: TObject; Client: TControl; NewTarget: TWinControl; var Allow: Boolean);
+procedure TFormDockHost.FormUnDock(Sender: TObject; Client: TControl;
+  NewTarget: TWinControl; var Allow: Boolean);
 begin
   // only 2 dock clients means the host must be destroyed and
   // the remaining window undocked to its old position and size.
@@ -107,8 +108,7 @@ procedure TFormDockHost.FormGetSiteInfo(Sender: TObject;
   DockClient: TControl; var InfluenceRect: TRect; MousePos: TPoint;
   var CanDock: Boolean);
 begin
-  CanDock:= DockClient is TFormDockable;
+  CanDock := DockClient is TFormDockable;
 end;
 
 end.
-

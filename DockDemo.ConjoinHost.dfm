@@ -1,4 +1,4 @@
-inherited FormDockHostConjoin: TFormDockHostConjoin
+object FormDockHostConjoin: TFormDockHostConjoin
   Left = 373
   Top = 291
   BorderStyle = bsSizeToolWin
