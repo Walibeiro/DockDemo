@@ -22,19 +22,4 @@ object DockableForm: TDockableForm
   OnStartDock = FormStartDock
   PixelsPerInch = 96
   TextHeight = 13
-  object Memo: TMemo
-    AlignWithMargins = True
-    Left = 2
-    Top = 2
-    Width = 387
-    Height = 213
-    Margins.Left = 2
-    Margins.Top = 2
-    Margins.Right = 2
-    Margins.Bottom = 2
-    Align = alClient
-    Lines.Strings = (
-      'Memo1')
-    TabOrder = 0
-  end
 end

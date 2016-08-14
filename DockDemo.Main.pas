@@ -252,9 +252,21 @@ begin
     Delete(ColorText, 1, 2);
     DockWindows[Index].Caption := ColorText;
 
-    DockWindows[Index].Memo.Color := CColors[Index];
-    DockWindows[Index].Memo.Font.Color := CColors[Index] xor $00FFFFFF;
-    DockWindows[Index].Memo.Text := ColorText + ' window';
+    with TMemo.Create(DockWindows[Index]) do
+    begin
+      Parent := DockWindows[Index];
+      Left := 0;
+      Top := 0;
+      Width := 391;
+      Height := 217;
+      Align := alClient;
+      Lines.Clear;
+      Lines.Add('Memo1');
+      TabOrder := 0;
+      Color := CColors[Index];
+      Font.Color := CColors[Index] xor $00FFFFFF;
+      Text := ColorText + ' window';
+    end;
   end;
 end;
 

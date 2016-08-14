@@ -6,11 +6,6 @@ inherited TabDockHost: TTabDockHost
   ClientWidth = 492
   PixelsPerInch = 96
   TextHeight = 13
-  inherited Memo: TMemo
-    Width = 488
-    Height = 271
-    TabOrder = 1
-  end
   object PageControl: TPageControl
     Left = 0
     Top = 0

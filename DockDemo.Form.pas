@@ -9,7 +9,6 @@ uses
 
 type
   TDockableForm = class(TForm)
-    Memo: TMemo;
     procedure FormDockOver(Sender: TObject; Source: TDragDockObject;
       X, Y: Integer; State: TDragState; var Accept: Boolean);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
