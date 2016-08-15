@@ -5,7 +5,7 @@ interface
 uses
   System.SysUtils, System.Classes, System.Types, WinApi.Windows,
   WinApi.Messages, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
-  DockDemo.Form, Vcl.Tabs, Vcl.ExtCtrls;
+  Vcl.Tabs, Vcl.ExtCtrls, DockDemo.Form, Vcl.DockTabSet;
 
 type
   TFormDockHost = class(TFormDockable)
@@ -22,7 +22,11 @@ type
       var InfluenceRect: TRect; MousePos: TPoint; var CanDock: Boolean);
     procedure TabSetChange(Sender: TObject; NewTab: Integer;
       var AllowChange: Boolean);
+    procedure TabSetMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
   private
+    FLastPosition: TPoint;
+    FSqrDistance: Single;
     procedure DoFloat(AControl: TControl);
     procedure SetIsPaged(const Value: Boolean);
     function GetIsPaged: Boolean;
@@ -31,6 +35,9 @@ type
   end;
 
 implementation
+
+uses
+  DockDemo.Utilities;
 
 {$R *.dfm}
 
@@ -71,13 +78,11 @@ begin
   if IsPaged then
     TabSet.TabIndex := TabSet.Tabs.Count - 1;
 
-  // Force DockManager to redraw it's clients.
+  // eventually force DockManager to redraw it's clients.
   if PanelDock.UseDockManager then
     PanelDock.DockManager.ResetBounds(True)
   else
-  begin
     Source.Control.Align := alClient;
-  end;
 end;
 
 procedure TFormDockHost.PanelUnDock(Sender: TObject; Client: TControl;
@@ -105,7 +110,20 @@ var
   Index: Integer;
 begin
   for Index := 0 to PanelDock.DockClientCount - 1 do
+  begin
     PanelDock.DockClients[Index].Visible := Index = NewTab;
+    if Index = NewTab then
+      Caption := TFormDockable(PanelDock.DockClients[Index]).Caption;
+  end;
+end;
+
+procedure TFormDockHost.TabSetMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+(*
+  if TabSet.TabIndex >= -1 then
+    PanelDock.DockClients[TabSet.TabIndex].BeginDrag(False, 5);
+*)
 end;
 
 function TFormDockHost.GetIsPaged: Boolean;

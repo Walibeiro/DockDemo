@@ -32,6 +32,7 @@ inherited FormDockHost: TFormDockHost
     Width = 590
     Height = 24
     Align = alBottom
+    DragKind = dkDock
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
@@ -39,5 +40,6 @@ inherited FormDockHost: TFormDockHost
     Font.Style = []
     Style = tsModernTabs
     OnChange = TabSetChange
+    OnMouseDown = TabSetMouseDown
   end
 end

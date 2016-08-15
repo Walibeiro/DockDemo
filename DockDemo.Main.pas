@@ -56,7 +56,7 @@ var
 implementation
 
 uses
-  Vcl.Graphics, DockDemo.Host, DockDemo.TabHost, DockDemo.ConjoinHost;
+  Vcl.Graphics, DockDemo.Host;
 
 {$R *.dfm}
 
@@ -114,7 +114,7 @@ begin
   DockWindow := DockWindows[(Sender as TComponent).Tag];
 
   if (DockWindow.HostDockSite is TPanel) and (DockWindow.HostDockSite.Owner is TFormDockHost) then
-    TFormDockHostTabs(DockWindow.HostDockSite.Owner).Show
+    TFormDockHost(DockWindow.HostDockSite.Owner).Show
   else
     DockWindow.Show;
 end;
